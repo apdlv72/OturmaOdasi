@@ -187,7 +187,7 @@ void mode_apply()
     digitalWrite(PIN_PWM_G, 0);
     digitalWrite(PIN_PWM_B, 0);
   }
-  sendCurrent();
+  //sendCurrent();
 }
 
 void mode_next()
@@ -330,15 +330,15 @@ void sendModeName(int mode)
 {
 	switch (mode)
 	{
-	case 0  : PPRINT("UP1+2");      break;
-	case 1  : PPRINT("UP1+2/DOWN"); break;
-	case 2  : PPRINT("UP1/DOWN");   break;
-	case 3  : PPRINT("DOWN");       break;
-	case 4  : PPRINT("STRIP1");     break;
-	case 5  : PPRINT("STRIP1+2");   break;
-	case 6  : PPRINT("STRIP2");     break;
-	case 7  : PPRINT("FAKETV");     break;
-	default : PPRINT("INVAL");      break;
+	case 0  : PPRINT("Flood_1+2");      break;
+	case 1  : PPRINT("Flood_1+2/Down"); break;
+	case 2  : PPRINT("Flood_1/Down");   break;
+	case 3  : PPRINT("Down");       break;
+	case 4  : PPRINT("Strip_1");     break;
+	case 5  : PPRINT("Strips_1+2");   break;
+	case 6  : PPRINT("Strip_2");     break;
+	case 7  : PPRINT("FakeV");     break;
+	default : PPRINT("Inval");      break;
 	}
 }
 
@@ -349,7 +349,7 @@ void sendHello()
   Serial.print("H:V=1 K=OTURMA");
   //Serial.print(" P=0-2 B=0-FF A=0-FF S=0-FFF F=0-FFF R=0-FF T=0-FFF C=0-FFFFFF ");
   // no amplitude, strength
-  Serial.print(" LAMPS=5 P=0-2 B=0-FF C=0-FFFFFF ");
+  Serial.print(" L=Flood_1,Flood_2,Down,Strip_1,Strip_2 P=0-2 B=0-FF C=0-FFFFFF ");
 
   // supported mode numbers and names
   Serial.print("M=");
@@ -871,6 +871,10 @@ void check_serial()
 	}
 
 	if (D>1) { PPRINT("D:LINE:'"); Serial.print(input_buffer); PPRINTLN("'"); }
+
+	#ifdef OSX
+	fprintf(stderr, "CMD: '%s'\n", input_buffer);
+	#endif
 
 	char cmd   = to_upper(input_buffer[0]);
 	char delim = input_buffer[1];
