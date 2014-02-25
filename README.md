@@ -18,4 +18,4 @@ Arduino with a strong magnet withou removing the board from the target device.
 This allows a reset of the board after an upload failed and the sketch stopped to communicate properly via
 Bluetooth.
 
-<img src="schematic/OturmaOdasi.svg">
+<img src="schematic/OturmaOdasi.png">
