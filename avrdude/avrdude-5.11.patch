@@ -1,0 +1,236 @@
+Only in avrdude-5.11.APdlV: .deps
+Only in avrdude-5.11.APdlV: Makefile
+Only in avrdude-5.11.APdlV: ac_cfg.h
+diff -u avrdude-5.11/arduino.c avrdude-5.11.APdlV/arduino.c
+--- avrdude-5.11/arduino.c	2010-11-02 17:52:16.000000000 +0100
++++ avrdude-5.11.APdlV/arduino.c	2013-10-31 16:05:56.000000000 +0100
+@@ -93,15 +93,31 @@
+   /* Clear DTR and RTS to unload the RESET capacitor 
+    * (for example in Arduino) */
+   serial_set_dtr_rts(&pgm->fd, 0);
+-  usleep(50*1000);
++  //usleep(50*1000);
++  usleep((50-5)*1000);
++
++  /*
++  APdlV: hack for programming over BT: 
++  There is no DTR line available on the BT module
++  that would reset the uC. Thus send the "magic" reset command to 
++  the program currently active on the uC and expect it to accept this
++  command and perform a reset in a timely fashion.
++  */
++    
++  unsigned char buf[1] = { 0x1b };
++  fprintf(stderr, "%s: arduino_open() sending reboot command 0x1b to uC", progname);
++  stk500_send(pgm, buf, 1);
++  stk500_drain(pgm, 1); // 1 - display what was drained
++  usleep(5*1000);
++
+   /* Set DTR and RTS back to high */
+   serial_set_dtr_rts(&pgm->fd, 1);
+-  usleep(50*1000);
++
+ 
+   /*
+    * drain any extraneous input
+    */
+-  stk500_drain(pgm, 0);
++  stk500_drain(pgm, 1);
+ 
+   if (stk500_getsync(pgm) < 0)
+     return -1;
+Only in avrdude-5.11.APdlV: arduino.cs
+Only in avrdude-5.11.APdlV: avrdude
+Only in avrdude-5.11.APdlV: avrdude-main.o
+Only in avrdude-5.11.APdlV: avrdude-term.o
+Only in avrdude-5.11.APdlV: avrdude.conf
+Only in avrdude-5.11.APdlV: avrdude.conf.tmp
+Only in avrdude-5.11.APdlV: config.log
+Only in avrdude-5.11.APdlV: config.status
+Only in avrdude-5.11.APdlV: config_gram.c
+Only in avrdude-5.11.APdlV: config_gram.h
+Common subdirectories: avrdude-5.11/doc and avrdude-5.11.APdlV/doc
+Only in avrdude-5.11.APdlV: lexer.c
+Only in avrdude-5.11.APdlV: libavrdude.a
+Only in avrdude-5.11.APdlV: libavrdude_a-arduino.o
+Only in avrdude-5.11.APdlV: libavrdude_a-avr.o
+Only in avrdude-5.11.APdlV: libavrdude_a-avr910.o
+Only in avrdude-5.11.APdlV: libavrdude_a-avrftdi.o
+Only in avrdude-5.11.APdlV: libavrdude_a-avrpart.o
+Only in avrdude-5.11.APdlV: libavrdude_a-bitbang.o
+Only in avrdude-5.11.APdlV: libavrdude_a-buspirate.o
+Only in avrdude-5.11.APdlV: libavrdude_a-butterfly.o
+Only in avrdude-5.11.APdlV: libavrdude_a-config.o
+Only in avrdude-5.11.APdlV: libavrdude_a-config_gram.o
+Only in avrdude-5.11.APdlV: libavrdude_a-confwin.o
+Only in avrdude-5.11.APdlV: libavrdude_a-crc16.o
+Only in avrdude-5.11.APdlV: libavrdude_a-fileio.o
+Only in avrdude-5.11.APdlV: libavrdude_a-jtagmkI.o
+Only in avrdude-5.11.APdlV: libavrdude_a-jtagmkII.o
+Only in avrdude-5.11.APdlV: libavrdude_a-lexer.o
+Only in avrdude-5.11.APdlV: libavrdude_a-lists.o
+Only in avrdude-5.11.APdlV: libavrdude_a-par.o
+Only in avrdude-5.11.APdlV: libavrdude_a-pgm.o
+Only in avrdude-5.11.APdlV: libavrdude_a-ppi.o
+Only in avrdude-5.11.APdlV: libavrdude_a-ppiwin.o
+Only in avrdude-5.11.APdlV: libavrdude_a-safemode.o
+Only in avrdude-5.11.APdlV: libavrdude_a-ser_avrdoper.o
+Only in avrdude-5.11.APdlV: libavrdude_a-ser_posix.o
+Only in avrdude-5.11.APdlV: libavrdude_a-ser_win32.o
+Only in avrdude-5.11.APdlV: libavrdude_a-serbb_posix.o
+Only in avrdude-5.11.APdlV: libavrdude_a-serbb_win32.o
+Only in avrdude-5.11.APdlV: libavrdude_a-stk500.o
+Only in avrdude-5.11.APdlV: libavrdude_a-stk500generic.o
+Only in avrdude-5.11.APdlV: libavrdude_a-stk500v2.o
+Only in avrdude-5.11.APdlV: libavrdude_a-update.o
+Only in avrdude-5.11.APdlV: libavrdude_a-usb_libusb.o
+Only in avrdude-5.11.APdlV: libavrdude_a-usbasp.o
+Only in avrdude-5.11.APdlV: libavrdude_a-usbtiny.o
+Only in avrdude-5.11.APdlV: libavrdude_a-wiring.o
+diff -u avrdude-5.11/main.c avrdude-5.11.APdlV/main.c
+--- avrdude-5.11/main.c	2011-08-26 22:30:27.000000000 +0200
++++ avrdude-5.11.APdlV/main.c	2013-10-21 11:30:35.000000000 +0200
+@@ -58,7 +58,7 @@
+ 
+ 
+ /* Get VERSION from ac_cfg.h */
+-char * version      = VERSION;
++char * version      = VERSION " (with BT hack by APdlV)";
+ 
+ char * progname;
+ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
+Only in avrdude-5.11.APdlV: stamp-h1
+diff -u avrdude-5.11/stk500.c avrdude-5.11.APdlV/stk500.c
+--- avrdude-5.11/stk500.c	2013-10-21 11:41:17.000000000 +0200
++++ avrdude-5.11.APdlV/stk500.c	2013-10-31 16:09:42.000000000 +0100
+@@ -46,7 +46,7 @@
+ #define STK500_XTAL 7372800U
+ 
+ /* back ported from 6.1: */
+-#define MAX_SYNC_ATTEMPTS 30
++#define MAX_SYNC_ATTEMPTS 1
+ 
+ 
+ static int stk500_getparm(PROGRAMMER * pgm, unsigned parm, unsigned * value);
+@@ -56,7 +56,9 @@
+     const unsigned char *buf);
+ 
+ 
+-static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
++/* Hack for programming over BT by APdlV */
++//static int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
++int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len)
+ {
+   return serial_send(&pgm->fd, buf, len);
+ }
+@@ -87,6 +89,27 @@
+ {
+   unsigned char buf[32], resp[32];
+ 
++  //char rbuf[] = "\nB=4711\n";
++  
++  buf[0] = 0x1b;
++  stk500_send(pgm, buf, 1);
++  fprintf(stderr, "stk500_getsync() sending reboot command to uC: 0x1b");
++
++  /*
++  buf[0] = 0x1b; 
++  buf[1] = 0;
++  fprintf(stderr, "stk500_getsync() sending reboot command to uC: %s", buf);
++  stk500_send(pgm, buf, 1);
++  int trials;
++  for (trials = 0; trials < 10; trials++) {
++    stk500_recv(pgm, resp, 1);
++    if  (resp[0] == '@') {
++      break;
++    }
++    usleep(10);
++  }
++  */
++  
+   /*
+    * get in sync */
+   buf[0] = Cmnd_STK_GET_SYNC;
+@@ -97,9 +120,9 @@
+    */
+    
+   stk500_send(pgm, buf, 2);
+-  stk500_drain(pgm, 0);
++  stk500_drain(pgm, 1);
+   stk500_send(pgm, buf, 2);
+-  stk500_drain(pgm, 0);
++  stk500_drain(pgm, 1);
+ 
+   /* old code w/o retries: */
+   /*
+@@ -116,6 +139,7 @@
+   */
+   
+   /* back ported from 6.1: */
++  int attempt;  
+   for (attempt = 0; attempt < MAX_SYNC_ATTEMPTS; attempt++) {
+     stk500_send(pgm, buf, 2);
+     stk500_recv(pgm, resp, 1);
+diff -u avrdude-5.11/stk500.h avrdude-5.11.APdlV/stk500.h
+--- avrdude-5.11/stk500.h	2010-01-01 09:49:55.000000000 +0100
++++ avrdude-5.11.APdlV/stk500.h	2013-10-21 11:27:48.000000000 +0200
+@@ -32,6 +32,10 @@
+ int stk500_getsync(PROGRAMMER * pgm);
+ int stk500_drain(PROGRAMMER * pgm, int display);
+ 
++/* APdlV: hack for programming over BT */
++int stk500_send(PROGRAMMER * pgm, unsigned char * buf, size_t len);
++
++  
+ #ifdef __cplusplus
+ }
+ #endif
+diff -u avrdude-5.11/stk500v2.c avrdude-5.11.APdlV/stk500v2.c
+--- avrdude-5.11/stk500v2.c	2011-08-26 22:22:10.000000000 +0200
++++ avrdude-5.11.APdlV/stk500v2.c	2013-10-31 16:12:42.000000000 +0100
+@@ -343,7 +343,8 @@
+   return l;
+ }
+ 
+-static int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
++
++int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len)
+ {
+   if (serial_send(&pgm->fd, data, len) != 0) {
+     fprintf(stderr,"%s: stk500_send_mk2(): failed to send command to serial port\n",progname);
+diff -u avrdude-5.11/stk500v2.h avrdude-5.11.APdlV/stk500v2.h
+--- avrdude-5.11/stk500v2.h	2011-08-26 22:22:10.000000000 +0200
++++ avrdude-5.11.APdlV/stk500v2.h	2013-10-31 16:11:52.000000000 +0100
+@@ -43,6 +43,9 @@
+ int stk500v2_drain(PROGRAMMER * pgm, int display);
+ int stk500v2_getsync(PROGRAMMER * pgm);
+ 
++
++int stk500v2_send_mk2(PROGRAMMER * pgm, unsigned char * data, size_t len);
++
+ #ifdef __cplusplus
+ }
+ #endif
+Common subdirectories: avrdude-5.11/windows and avrdude-5.11.APdlV/windows
+diff -u avrdude-5.11/wiring.c avrdude-5.11.APdlV/wiring.c
+--- avrdude-5.11/wiring.c	2011-08-26 22:35:41.000000000 +0200
++++ avrdude-5.11.APdlV/wiring.c	2013-10-31 16:15:30.000000000 +0100
+@@ -200,6 +200,18 @@
+     }
+ 
+     serial_set_dtr_rts(&pgm->fd, 1);
++    
++
++    /* APdlV */
++  unsigned char buf[1] = { 0x1b };
++  stk500v2_send_mk2(pgm,buf, 1); 
++  stk500v2_send_mk2(pgm,buf, 1); 
++  stk500v2_send_mk2(pgm,buf, 1); 
++  stk500v2_send_mk2(pgm,buf, 1); 
++  stk500v2_send_mk2(pgm,buf, 1); 
++  
++    
++    
+     usleep(50*1000);
+   }
+ 
